@@ -1,0 +1,20 @@
+@startuml Контекстная диаграмма - Интеграция кол-центров с сервисом ставок
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Диаграмма контекста "Интеграция кол-центров с сервисом ставок"
+
+Person(cc_operator, "Оператор кол-центра", "Консультирует клиентов по телефону")
+Person(partner_operator, "Оператор партнерского\nкол-центра", "Консультирует клиентов по телефону")
+
+System(call_center, "Система кол-центра банка", "Обработка коммуникации с клиентами")
+System_Ext(partner_cc, "Система партнерского\nкол-центра", "Внешняя система")
+
+System(deposit_system, "Сервис ставок", "Хранение и управление ставками")
+
+Rel(cc_operator, call_center, "Работает с клиентами")
+Rel(partner_operator, partner_cc, "Работает с клиентами")
+
+Rel(call_center, deposit_system, "Получает актуальные ставки", "REST API")
+Rel(deposit_system, partner_cc, "Передает файл со ставками", "SFTP")
+
+@enduml

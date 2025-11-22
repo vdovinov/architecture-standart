@@ -1,0 +1,22 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Диаграмма контейнеров - Интеграция кол-центров с сервисом ставок
+
+System_Boundary(bank_systems, "Системы банка «Стандарт»") {
+    Container(bank_cc_ui, "Веб-интерфейс", "React.js", "Интерфейс оператора кол-центра")
+    Container(bank_cc_backend, "Бэкенд кол-центра", "Java Spring Boot", "Обработка звонков и данных")
+    Container(deposit_service, "Сервис ставок", "Java Spring Boot", "Управление ставками по депозитам")
+    ContainerDb(postgresql, "СУБД PostgreSQL", "Данные заявок и ставок")
+    Container(sftp_server, "SFTP сервер", "SFTP", "Временное хранение файлов для партнеров")
+}
+
+System_Ext(partner_system, "Система партнерского\nкол-центра", "Внешняя CRM система")
+
+Rel(bank_cc_ui, bank_cc_backend, "API вызовы", "REST")
+Rel(bank_cc_backend, deposit_service, "Запрос актуальных ставок", "REST API")
+Rel(deposit_service, postgresql, "Чтение/запись ставок", "JDBC")
+Rel(deposit_service, sftp_server, "Выгрузка файла со ставками", "SFTP")
+Rel(partner_system, sftp_server, "Забор файла со ставками", "SFTP")
+
+@enduml
