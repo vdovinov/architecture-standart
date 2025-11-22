@@ -1,0 +1,58 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+title Диаграмма контейнеров - MVP онлайн-депозитов
+
+Container_Boundary(bank_systems, "Системы банка «Стандарт»") {
+  Container(website, "Сайт", "PHP/React.js")
+  Container(internet_bank, "Интернет-банк", "ASP.NET")
+  ContainerDb(mssql, "СУБД MS SQL", "Данные интернет-банка")
+'  Container(call_center, "Система кол-центра банка", "Обработка коммуникации с клиентами")
+}
+
+Container_Boundary(deposit_mvp, "Система онлайн-депозитов (MVP)") {
+  Container(web_service, "Web-интерфейс для бэк-офиса", "React.js")
+  Container(order_service, "Сервис заявок", "Java Spring Boot")
+  Container(rate_service, "Сервис ставок", "Java Spring Boot")
+  Container(sms_service, "Сервис СМС", "Java Spring Boot")
+  ContainerDb(postgresql, "СУБД PostgreSQL", "Данные заявок и ставок")
+  Container(kafka, "Брокер сообщений", "Apache Kafka")
+}
+
+Container_Boundary(abs_system, "Ядро АБС и данные") {
+  Container(abs, "Автоматизированная банковская система", "Delphi")
+  ContainerDb(oracle, "СУБД Oracle", "PL/SQL")
+}
+
+Container_Ext(sms_gate,  "СМС-шлюз", "Отправка СМС")
+
+'Сайт
+Rel(website, rate_service, "Получает ставки", "REST API")
+
+'Интернет-банк
+Rel(internet_bank, mssql, "Читает/пишет\nданные", "ODBC")
+Rel_D(internet_bank, rate_service, "Получает ставки", "REST API")
+Rel_R(internet_bank, sms_service, "Инициирует верификацию", "REST API")
+
+'Web-интерфейс
+Rel_D(web_service, order_service, "Проверяет/подтверждает заявки", "REST API")
+Rel_D(web_service, rate_service, "Управляет ставками", "REST API")
+
+'Сервис ставок
+Rel(rate_service, postgresql, "Сохраняет ставки и формулы", "JDBC")
+
+'Сервис заявок
+Rel(order_service, postgresql, "Сохраняет заявки", "JDBC")
+Rel_D(order_service, kafka, "Отправляет сообщение на открытие депозита", "Kafka Topic")
+
+'Сервис СМС
+Rel(sms_service, sms_gate, "Отправляет СМС", "REST API")
+
+'Кафка
+Rel_U(kafka, order_service, "Получает сообщение о статусе", "Kafka Topic")
+Rel(kafka, abs, "Новая заявка для АБС", "Kafka Topic")
+
+'АБС
+Rel_U(abs, kafka, "Заявка обработана", "Kafka Topic")
+Rel_D(abs, oracle, "Читает/пишет\nданные", "FireDAC")
+
+@enduml

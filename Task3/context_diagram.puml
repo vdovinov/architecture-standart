@@ -1,0 +1,46 @@
+@startuml Контекстная диаграмма - MVP онлайн-депозитов банка "Стандарт"
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Диаграмма контекста - MVP онлайн-депозитов банка "Стандарт"
+
+Person(new_client, "Клиент (новый)", "Подает заявку на депозит через сайт")
+Person(existing_client, "Клиент (существующий)", "Открывает депозит через интернет-банк")
+Person(cc_operator, "Оператор кол-центра", "Консультирует клиентов")
+Person(back_office, "Сотрудник бэк-офиса", "Обрабатывает заявки и управляет ставками")
+
+System_Boundary(bank_systems, "Системы банка «Стандарт»") {
+  System(website, "Сайт", "Подача заявки на депозит")
+  System(internet_bank, "Интернет-банк", "Открытие депозитов и накопительных счетов")
+  System(call_center, "Система кол-центра банка", "Обработка коммуникации с клиентами")
+  System(deposit_system, "Система онлайн-депозитов (MVP)", "Обработка заявок и управление ставками")
+  System(abs, "Автоматизированная банковская система (АБС)" ,"Учёт операций по счетам и бухгалтерия")
+  System(sms_gate,  "СМС-шлюз", "Отправка СМС")
+}
+
+System_Ext(telecom, "Телеком-оператор", "Доставка СМС")
+
+Rel(new_client, website, "Подает заявку", "UC-1")
+Rel(existing_client, internet_bank, "Открывает депозит", "UC-2")
+Rel(back_office, deposit_system, "Обрабатывает заявки и ставки", "UC-3, UC-4")
+Rel(telecom, existing_client, "Доставляет СМС")
+Rel(cc_operator, new_client, "Консультирует", "UC-1")
+
+Rel(website, call_center, "Передает заявку", "UC-1")
+Rel(cc_operator, call_center, "Смотрит заявки", "UC-1")
+
+Rel_L(internet_bank, sms_gate, "Отправляет СМС", "UC-2")
+Rel_U(sms_gate, telecom, "Передает СМС", "UC-2")
+
+Rel(internet_bank, deposit_system, "Передает заявку", "UC-2")
+'Rel_D(deposit_system, back_office, "Ставит заявку с очередь", "UC-2")
+
+'Rel_U(back_office, deposit_system, "Подтверждает открытие депозита", "UC-3")
+Rel_R(deposit_system, sms_gate, "Выполняет команду на отправку СМС", "UC-3")
+
+'Rel_U(back_office, deposit_system, "Управляет ставками и формулами для расчета", "UC-4")
+Rel(internet_bank, deposit_system, "Получает новые ставки", "UC-4")
+Rel(website, deposit_system, "Получает новые ставки", "UC-4")
+
+Rel_L(deposit_system, abs, "Фиксирует операции открытия депозитов", "UC-3")
+
+@enduml
